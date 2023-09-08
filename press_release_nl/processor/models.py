@@ -12,7 +12,7 @@ class Entry(TimeStampedModel):
 
     @property
     def texts_done_count(self):
-        return len(self.texts.filter(score__isnull=False))
+        return len(self.texts.filter(score__isnull=False, summery__isnull=False))
 
     @property
     def texts_count(self):
@@ -21,6 +21,7 @@ class Entry(TimeStampedModel):
 
 class Text(models.Model):
     entry = models.ForeignKey("Entry", related_name="texts", on_delete=models.CASCADE)
+    summery = models.TextField(max_length=2000, blank=True, null=True)
     file = models.FileField(blank=True, null=True, upload_to="uploads/")
     text = models.TextField(blank=True, null=True, max_length=25_000)
     score = models.JSONField(null=True)

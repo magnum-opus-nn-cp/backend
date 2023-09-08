@@ -1,3 +1,4 @@
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import generics, parsers, permissions, status
 from rest_framework.response import Response
 
@@ -25,6 +26,9 @@ class SubmitTextsApiView(generics.CreateAPIView):
         )
 
 
+@extend_schema_view(
+    get=extend_schema(parameters=[OpenApiParameter(name="id", type=int)])
+)
 class RetrieveEntryApiView(generics.RetrieveAPIView):
     queryset = Entry.objects.all()
     permission_classes = [permissions.AllowAny]

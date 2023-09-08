@@ -1,4 +1,5 @@
 from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from press_release_nl.processor.models import Entry, Text
@@ -65,14 +66,22 @@ class TextSubmitSerializer(serializers.ModelSerializer):
 class ProcessedTextSerializer(serializers.ModelSerializer):
     class Meta:
         model = Text
-        fields = ["text", "score"]
+        fields = ["id", "summery", "text", "score"]
 
 
 class EntrySerializer(serializers.ModelSerializer):
-    texts = ProcessedTextSerializer(many=True)
-    done = serializers.IntegerField(source="texts_done_count")
-    count = serializers.IntegerField(source="texts_count")
+    texts = serializers.SerializerMethodField(method_name="get_texts")
+    current = serializers.IntegerField(source="texts_done_count")
+    total = serializers.IntegerField(source="texts_count")
+
+    @extend_schema_field(ProcessedTextSerializer(many=True))
+    def get_texts(self, obj: Entry):
+        id = self.context["request"].query_params.get("id")
+        q = obj.texts.all()
+        if id:
+            q = q.filter(id=id)
+        return ProcessedTextSerializer(many=True).to_representation(q)
 
     class Meta:
         model = Entry
-        fields = ["texts", "done", "count", "created"]
+        fields = ["texts", "current", "total", "created"]
