@@ -1,5 +1,5 @@
 from django.core.cache import cache
-from django.db.models.signals import post_save, post_delete, pre_save
+from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
 
 from press_release_nl.tickets.models import Ticket

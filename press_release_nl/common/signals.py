@@ -7,7 +7,7 @@ def create_cropped_model_image(sender, instance, created, **kwargs):
     model = sender
     if created:
         if instance.image:
-            
+
             crop_model_image.apply_async(
                 kwargs={
                     "pk": instance.pk,
@@ -16,7 +16,7 @@ def create_cropped_model_image(sender, instance, created, **kwargs):
                 },
                 countdown=2,
             )
-            
+
 
 def update_cropped_model_image(sender, instance, **kwargs):
     model = sender
@@ -30,7 +30,7 @@ def update_cropped_model_image(sender, instance, **kwargs):
             # run task to create new cropped image
             if kwargs["update_fields"] != frozenset({"image_cropped"}) and instance:
                 if instance.image:
-                    
+
                     crop_model_image.apply_async(
                         kwargs={
                             "pk": instance.pk,
@@ -39,7 +39,7 @@ def update_cropped_model_image(sender, instance, **kwargs):
                         },
                         countdown=2,
                     )
-                    
+
                 else:
                     instance.image_cropped = None
 
