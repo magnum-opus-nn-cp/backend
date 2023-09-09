@@ -52,7 +52,7 @@ class UpdateTextDescriptionApiView(generics.GenericAPIView):
     def get(self, request, *args, **kwargs):
         type = self.request.query_params.get("type")
         text = get_object_or_404(Text, id=self.kwargs["id"])
-        run_mth = ["f", "bert"]
+        run_mth = ["f", "bert", "nearest"]
         if type in run_mth:
             run_mth = [type]
 
@@ -71,8 +71,14 @@ class UpdateTextDescriptionApiView(generics.GenericAPIView):
                 re = requests.post(ML_HOST + "tfidf/describe", json={"data": text.text})
                 if re.status_code == 200:
                     text.description["f"]["text"] = re.json()["text"]
+
+            if "nearest" not in text.description and "nearest" in run_mth:
+                e = True
+                text.description["nearest"] = {}
+                text.description["nearest"]["text"] = text.score["nearest"]["detailed"]
+                text.score["nearest"]["detailed"] = ""
             if e:
-                text.save(update_fields=["description"])
+                text.save(update_fields=["description", "score"])
 
         else:
             text.description = {}
@@ -87,5 +93,10 @@ class UpdateTextDescriptionApiView(generics.GenericAPIView):
                 re = requests.post(ML_HOST + "tfidf/describe", json={"data": text.text})
                 if re.status_code == 200:
                     text.description["f"]["text"] = re.json()["text"]
-            text.save(update_fields=["description"])
+
+            if "nearest" in run_mth:
+                text.description["nearest"] = {}
+                text.description["nearest"]["text"] = text.score["nearest"]["detailed"]
+                text.score["nearest"]["detailed"] = ""
+            text.save(update_fields=["description", "score"])
         return Response(data=ProcessedTextSerializer().to_representation(instance=text))
