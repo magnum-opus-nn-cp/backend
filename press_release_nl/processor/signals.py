@@ -3,7 +3,12 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from press_release_nl.processor.models import Entry, Text
-from press_release_nl.processor.tasks import load_text, load_text_sum, run_ml
+from press_release_nl.processor.tasks import (
+    load_text,
+    load_text_sum,
+    run_create_highlighted_document,
+    run_ml,
+)
 
 
 @receiver(post_save, sender=Text)
@@ -23,6 +28,12 @@ def run_text_process(sender, instance: Text, created, **kwargs):
                     return
         load_text.apply_async(kwargs={"pk": instance.pk}, countdown=1)
         load_text_sum.apply_async(kwargs={"pk": instance.pk}, countdown=4)
+    if instance.description:
+        for k, v in instance.description.items():
+            if "file" not in v:
+                run_create_highlighted_document.apply_async(
+                    kwargs={"pk": instance.pk, "var": k}, countdown=1
+                )
 
 
 @receiver(post_save, sender=Entry)

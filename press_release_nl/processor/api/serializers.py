@@ -64,9 +64,17 @@ class TextSubmitSerializer(serializers.ModelSerializer):
 
 
 class ProcessedTextSerializer(serializers.ModelSerializer):
+    summary = serializers.CharField(source="summery")
+    file_name = serializers.SerializerMethodField("get_file_name")
+
+    def get_file_name(self, obj):
+        if not obj.file:
+            return "Text"
+        return obj.file.path.split("/")[-1]
+
     class Meta:
         model = Text
-        fields = ["id", "summery", "text", "score"]
+        fields = ["id", "file_name", "summary", "text", "score", "description"]
 
 
 class EntrySerializer(serializers.ModelSerializer):

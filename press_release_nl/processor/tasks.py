@@ -5,8 +5,10 @@ import textract
 from celery import shared_task
 
 from press_release_nl.processor.models import Entry, Text
+from press_release_nl.processor.services import create_highlighted_document
 
 ML_HOST = "http://192.168.107.95:8000/"
+# ML_HOST = "https://dev2.akarpov.ru/"
 ML_SUM_HOST = "https://dev.akarpov.ru/"
 
 
@@ -65,4 +67,13 @@ def load_text_sum(pk: int):
     text.refresh_from_db()
     text.summery = str(data)
     text.save(update_fields=["summery"])
+    return pk
+
+
+@shared_task
+def run_create_highlighted_document(pk: int, var: str):
+    text = Text.objects.get(pk=pk)
+    file_path = create_highlighted_document(pk, var)
+    text.description[var]["file"] = file_path
+    text.save()
     return pk

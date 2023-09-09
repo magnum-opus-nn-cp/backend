@@ -25,6 +25,7 @@ class Text(models.Model):
     file = models.FileField(blank=True, null=True, upload_to="uploads/")
     text = models.TextField(blank=True, null=True, max_length=25_000)
     score = models.JSONField(null=True)
+    description = models.JSONField(null=True)
 
     def __str__(self):
         return f"{self.text}"[:200]
