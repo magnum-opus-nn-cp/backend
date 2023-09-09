@@ -2,8 +2,8 @@ import openpyxl
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from press_release_nl.processor.models import Text
-from press_release_nl.processor.tasks import load_text, load_text_sum
+from press_release_nl.processor.models import Entry, Text
+from press_release_nl.processor.tasks import load_text, load_text_sum, run_ml
 
 
 @receiver(post_save, sender=Text)
@@ -21,5 +21,11 @@ def run_text_process(sender, instance: Text, created, **kwargs):
                             Text.objects.create(entry=instance.entry, text=text)
                     instance.delete()
                     return
-        load_text.apply_async(kwargs={"pk": instance.pk}, countdown=2)
+        load_text.apply_async(kwargs={"pk": instance.pk}, countdown=1)
         load_text_sum.apply_async(kwargs={"pk": instance.pk}, countdown=4)
+
+
+@receiver(post_save, sender=Entry)
+def run_entry_ml(sender, instance: Entry, created, **kwargs):
+    if created:
+        run_ml.apply_async(kwargs={"pk": instance.pk}, countdown=4)
