@@ -41,24 +41,31 @@ class RetrieveEntryApiView(generics.RetrieveAPIView):
     lookup_url_kwarg = "uuid"
 
 
+@extend_schema_view(
+    get=extend_schema(parameters=[OpenApiParameter(name="type", type=str)])
+)
 class UpdateTextDescriptionApiView(generics.GenericAPIView):
     serializer_class = TextSubmitSerializer
     queryset = Text.objects.none()
     permission_classes = [permissions.AllowAny]
 
     def get(self, request, *args, **kwargs):
-        # TODO: add get param for gen
+        type = self.request.query_params.get("type")
         text = get_object_or_404(Text, id=self.kwargs["id"])
+        run_mth = ["f", "bert"]
+        if type in run_mth:
+            run_mth = [type]
+
         if text.description:
             e = False
-            if "bert" not in text.description:
+            if "bert" not in text.description and "bert" in run_mth:
                 e = True
                 text.description["bert"] = {}
                 re = requests.post(ML_HOST + "bert/describe", json={"data": text.text})
                 if re.status_code == 200:
                     text.description["bert"]["text"] = re.json()["text"]
 
-            if "f" not in text.description:
+            if "f" not in text.description and "f" in run_mth:
                 e = True
                 text.description["f"] = {}
                 re = requests.post(ML_HOST + "tfidf/describe", json={"data": text.text})
@@ -68,12 +75,17 @@ class UpdateTextDescriptionApiView(generics.GenericAPIView):
                 text.save(update_fields=["description"])
 
         else:
-            text.description = {"bert": {}, "f": {}}
-            re = requests.post(ML_HOST + "bert/describe", json={"data": text.text})
-            if re.status_code == 200:
-                text.description["bert"]["text"] = re.json()["text"]
-            re = requests.post(ML_HOST + "tfidf/describe", json={"data": text.text})
-            if re.status_code == 200:
-                text.description["f"]["text"] = re.json()["text"]
+            text.description = {}
+            if "bert" in run_mth:
+                text.description["bert"] = {}
+                re = requests.post(ML_HOST + "bert/describe", json={"data": text.text})
+                if re.status_code == 200:
+                    text.description["bert"]["text"] = re.json()["text"]
+
+            if "f" in run_mth:
+                text.description["f"] = {}
+                re = requests.post(ML_HOST + "tfidf/describe", json={"data": text.text})
+                if re.status_code == 200:
+                    text.description["f"]["text"] = re.json()["text"]
             text.save(update_fields=["description"])
         return Response(data=ProcessedTextSerializer().to_representation(instance=text))

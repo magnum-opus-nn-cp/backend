@@ -67,6 +67,7 @@ class ProcessedTextSerializer(serializers.ModelSerializer):
     summary = serializers.CharField(source="summery")
     file_name = serializers.SerializerMethodField("get_file_name")
 
+    @extend_schema_field(serializers.CharField)
     def get_file_name(self, obj):
         if not obj.file:
             return "Text"
