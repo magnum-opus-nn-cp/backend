@@ -1,10 +1,14 @@
 # Press Release Analyzer
 
+Бекенд для приложения: создание данных, обработка, процессинг и генерация файлов
+
+Код написан с использованием лучших подходов на Django, с использованием Celery. Так же есть CI/CD, тесты, Docker
 
 ## Basic Commands
 
 ### Runserver
 
+    $ ./manage.py migrate
     $ ./manage.py runserver_plus
 
 ### Type checks
@@ -33,8 +37,5 @@ To run a celery worker:
 cd press_release_nl
 celery -A config.celery_app worker -l info
 ```
-
-Please note: For Celery's import magic to work, it is important *where* the celery commands are run. If you are in the same folder with *manage.py*, you should be right.
-
 
 made with [cookiecutter-django](https://github.com/Alexander-D-Karpov/cookiecutter-django)
